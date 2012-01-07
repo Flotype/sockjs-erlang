@@ -33,8 +33,8 @@ terminate(_Req, _State) ->
 %% --------------------------------------------------------------------------
 
 websocket_init(_TransportName, Req, {_Handler, WsHandler}) ->
-    {Receive, {cowboy, Req1}} = WsHandler({cowboy, Req}),
-    Self = {?WS_MODULE, self(), cowboy},
+    {Receive, {cowboy, Req1}, SessionId} = WsHandler({cowboy, Req}),
+    Self = {?WS_MODULE, self(), cowboy, SessionId},
     self() ! {send, ["o"]},
     Receive(Self, init),
     {ok, Req1, #ws_state{self = Self, recv = Receive}}.
