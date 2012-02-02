@@ -310,8 +310,14 @@ reply_loop(Req, SessionId, Once, Fmt) ->
         wait           -> receive
                               go -> reply_loop(Req, SessionId, Once, Fmt)
                           after Heartbeat ->
-                                  chunk(Req, <<"h">>, Fmt),
-                                  reply_loop0(Req, SessionId, Once, Fmt)
+                              % connection might have died in the
+                              % meantime. Check before proceeeding
+                              case chunk(Req, <<"h">>, Fmt) of
+                                ok -> reply_loop0(Req, SessionId,
+                                    Once, Fmt);
+                                error ->
+                                  error
+                              end
                           end;
         session_in_use -> Err = sockjs_util:encode_list([{close, ?STILL_OPEN}]),
                           chunk(Req, Err, Fmt),
